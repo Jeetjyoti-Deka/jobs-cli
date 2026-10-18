@@ -5,16 +5,27 @@ import (
     "encoding/json"
     "io"
     "fmt"
+    "time"
 )
 
 type Client struct {
     *http.Client
 }
 
-func New() *Client {
+func NewWithTimeout(timeout time.Duration) *Client {
     return &Client {
-        Client: &http.Client{},
+        Client: &http.Client{
+		Timeout: timeout,
+	},
     }
+}
+
+func New() *Client {
+	return &Client {
+		Client: &http.Client{
+			Timeout: 30 * time.Second,
+		},
+	}
 }
 
 func (c *Client) GetJSON(url string, out any) error {
