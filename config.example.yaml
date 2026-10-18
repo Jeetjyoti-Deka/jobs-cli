@@ -1,0 +1,12 @@
+companies:
+  - name: Example Greenhouse Co
+    provider: greenhouse
+    board: example-greenhouse-board
+
+  - name: Example Lever Co
+    provider: lever
+    board: example-lever-board
+
+  - name: Example Ashby Co
+    provider: ashby
+    board: example-ashby-board
