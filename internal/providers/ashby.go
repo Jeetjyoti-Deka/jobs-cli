@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/Jeetjyoti-Deka/jobs-cli/internal/config"
-	"github.com/Jeetjyoti-Deka/jobs-cli/internal/models"
 	"github.com/Jeetjyoti-Deka/jobs-cli/internal/httpclient"
+	"github.com/Jeetjyoti-Deka/jobs-cli/internal/models"
 )
 
 const ashbyAPI = "https://api.ashbyhq.com/posting-api/job-board/%s"
@@ -58,10 +58,10 @@ func (p *AshbyProvider) Scrape(company config.Company) ([]models.Job, error) {
 		}
 
 		jobs = append(jobs, models.Job{
-			Company: company.Name,
-			Title: job.Title,
+			Company:  company.Name,
+			Title:    job.Title,
 			Location: ashbyLocation(job),
-			URL: job.JobURL,
+			URL:      job.JobURL,
 		})
 	}
 

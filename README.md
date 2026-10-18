@@ -123,6 +123,7 @@ jobs-cli scrape [flags]
 |--------------|-------|-----------|-------------|
 | `--output`   | `-o`  | `console` | Output format: `console` or `markdown`. |
 | `--file`     | `-f`  | `jobs.md` | Output file path. Only used with `--output markdown`. |
+| `--concurrency` | `-n` | `8`    | Maximum number of companies to scrape at once. Must be at least 1. |
 | `--title`    | `-t`  | *(none)*  | Keep only jobs whose title contains this text. Repeatable / comma-separated. |
 | `--location` | `-l`  | *(none)*  | Keep only jobs whose location contains this text. Repeatable / comma-separated. |
 

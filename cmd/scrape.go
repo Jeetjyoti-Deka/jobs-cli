@@ -5,19 +5,20 @@ import (
 	"os"
 
 	"github.com/Jeetjyoti-Deka/jobs-cli/internal/config"
-	"github.com/Jeetjyoti-Deka/jobs-cli/internal/providers"
-	"github.com/Jeetjyoti-Deka/jobs-cli/internal/httpclient"
-	"github.com/Jeetjyoti-Deka/jobs-cli/internal/scraper"
-	"github.com/Jeetjyoti-Deka/jobs-cli/internal/output"
 	"github.com/Jeetjyoti-Deka/jobs-cli/internal/filter"
+	"github.com/Jeetjyoti-Deka/jobs-cli/internal/httpclient"
+	"github.com/Jeetjyoti-Deka/jobs-cli/internal/output"
+	"github.com/Jeetjyoti-Deka/jobs-cli/internal/providers"
+	"github.com/Jeetjyoti-Deka/jobs-cli/internal/scraper"
 	"github.com/spf13/cobra"
 )
 
 var (
-	outputType string
-	outputFile string
-	titleFilter []string
+	outputType     string
+	outputFile     string
+	titleFilter    []string
 	locationFilter []string
+	concurrency    int
 )
 
 func createOutput() (output.Output, *os.File, error) {
@@ -72,6 +73,9 @@ var scrapeCmd = &cobra.Command{
 	Use:   "scrape",
 	Short: "Scrape configured companies",
 	RunE: func(cmd *cobra.Command, args []string) error {
+		if concurrency < 1 {
+			return fmt.Errorf("--concurrency must be at least 1, got %d", concurrency)
+		}
 
 		cfg, err := config.Load(configPath)
 		if err != nil {
@@ -81,7 +85,7 @@ var scrapeCmd = &cobra.Command{
 
 		factory := providers.NewFactory(client)
 
-		sc := scraper.New(factory)
+		sc := scraper.New(factory, concurrency)
 
 		results := sc.Run(cfg.Companies)
 
@@ -102,7 +106,7 @@ var scrapeCmd = &cobra.Command{
 		var out output.Output
 
 		out, _, err = createOutput()
-		if err != nil{
+		if err != nil {
 			return fmt.Errorf("error creating output formatter: %w", err)
 		}
 
@@ -131,6 +135,14 @@ func init() {
 		"f",
 		"jobs.md",
 		"Output file",
+	)
+
+	scrapeCmd.Flags().IntVarP(
+		&concurrency,
+		"concurrency",
+		"n",
+		scraper.DefaultConcurrency,
+		"Maximum number of companies to scrape at once",
 	)
 
 	scrapeCmd.Flags().StringSliceVarP(

@@ -1,29 +1,26 @@
 package output
 
 import (
-    "io"
-    "fmt"
+	"fmt"
+	"io"
 
-    "github.com/Jeetjyoti-Deka/jobs-cli/internal/models"
+	"github.com/Jeetjyoti-Deka/jobs-cli/internal/models"
 )
 
 type ConsoleOutput struct {
-    writer io.Writer
+	writer io.Writer
 }
-
-
 
 func NewConsoleOutput(writer io.Writer) *ConsoleOutput {
-    return &ConsoleOutput{
-        writer: writer,
-    }
+	return &ConsoleOutput{
+		writer: writer,
+	}
 }
 
-
 func (o *ConsoleOutput) Write(results []models.ScrapeResult) error {
-    failed := 0
-    total := len(results)
-    for _, result := range results {
+	failed := 0
+	total := len(results)
+	for _, result := range results {
 		if result.Err != nil {
 			failed++
 

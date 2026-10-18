@@ -14,10 +14,10 @@ func NewDummyProvider() *DummyProvider {
 func (p *DummyProvider) Scrape(company config.Company) ([]models.Job, error) {
 	return []models.Job{
 		{
-			Company: company.Name,
-			Title:   "Software Engineer",
+			Company:  company.Name,
+			Title:    "Software Engineer",
 			Location: "Remote",
-			URL:     company.Board,
+			URL:      company.Board,
 		},
 	}, nil
 }

@@ -1,64 +1,79 @@
 package scraper
 
 import (
-    "sync"
+	"sync"
 
-    "github.com/Jeetjyoti-Deka/jobs-cli/internal/providers"
-    "github.com/Jeetjyoti-Deka/jobs-cli/internal/models"
-    "github.com/Jeetjyoti-Deka/jobs-cli/internal/config"
+	"github.com/Jeetjyoti-Deka/jobs-cli/internal/config"
+	"github.com/Jeetjyoti-Deka/jobs-cli/internal/models"
+	"github.com/Jeetjyoti-Deka/jobs-cli/internal/providers"
 )
 
+const DefaultConcurrency = 8
+
 type Scraper struct {
-    factory *providers.Factory
+	factory     *providers.Factory
+	concurrency int
 }
 
-func New(factory *providers.Factory) *Scraper {
-    return &Scraper{
-        factory: factory,
-    }
+func New(factory *providers.Factory, concurrency int) *Scraper {
+	return &Scraper{
+		factory:     factory,
+		concurrency: max(concurrency, 1),
+	}
 }
 
 func (s *Scraper) Run(companies []config.Company) []models.ScrapeResult {
-   
-		results := make(chan models.ScrapeResult)
-		var wg sync.WaitGroup
+	queue := make(chan config.Company, len(companies))
+	for _, company := range companies {
+		queue <- company
+	}
+	close(queue)
 
-		for _, company := range companies {
-			wg.Add(1)
+	results := make(chan models.ScrapeResult)
+	var wg sync.WaitGroup
 
-			go func(company config.Company) {
-				defer wg.Done()
+	for range min(s.concurrency, len(companies)) {
+		wg.Add(1)
+		go s.worker(queue, results, &wg)
+	}
 
-				provider, err := s.factory.Get(company.Provider)
-				if err != nil {
-					results <- models.ScrapeResult{
-						Company: company.Name,
-						Err: err,
-					}
-					return
-				}
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
 
-				jobs, err := provider.Scrape(company)
+	scrapeResults := make([]models.ScrapeResult, 0, len(companies))
 
-				results <- models.ScrapeResult{
-					Company: company.Name,
-					Jobs: jobs,
-					Err: err,
-				}
+	for result := range results {
+		scrapeResults = append(scrapeResults, result)
+	}
 
-			}(company)
+	return scrapeResults
+}
+
+func (s *Scraper) worker(
+	companies <-chan config.Company,
+	results chan<- models.ScrapeResult,
+	wg *sync.WaitGroup,
+) {
+	defer wg.Done()
+
+	for company := range companies {
+		provider, err := s.factory.Get(company.Provider)
+		if err != nil {
+			results <- models.ScrapeResult{
+				Company: company.Name,
+				Err:     err,
+			}
+			continue
 		}
 
-		go func() {
-			wg.Wait()
-			close(results)
-		}()
+		jobs, err := provider.Scrape(company)
 
-        scrapeResults := []models.ScrapeResult{}
-
-        for result := range results {
-            scrapeResults = append(scrapeResults, result)
-        }
-
-        return scrapeResults
+		results <- models.ScrapeResult{
+			Company: company.Name,
+			Jobs:    jobs,
+			Err:     err,
+		}
+	}
 }

@@ -1,11 +1,11 @@
 package providers
 
 import (
-    "fmt"
+	"fmt"
 
-    "github.com/Jeetjyoti-Deka/jobs-cli/internal/config"
-	"github.com/Jeetjyoti-Deka/jobs-cli/internal/models"
+	"github.com/Jeetjyoti-Deka/jobs-cli/internal/config"
 	"github.com/Jeetjyoti-Deka/jobs-cli/internal/httpclient"
+	"github.com/Jeetjyoti-Deka/jobs-cli/internal/models"
 )
 
 const leverAPI = "https://api.lever.co/v0/postings/%s?mode=json"
@@ -20,18 +20,18 @@ type leverJob struct {
 	} `json:"categories"`
 }
 
-type LeverProvider struct{
-    client *httpclient.Client
+type LeverProvider struct {
+	client *httpclient.Client
 }
 
 func NewLeverProvider(client *httpclient.Client) *LeverProvider {
-    return &LeverProvider{
-        client: client,
-    }
+	return &LeverProvider{
+		client: client,
+	}
 }
 
 func (p *LeverProvider) Scrape(company config.Company) ([]models.Job, error) {
-    url := fmt.Sprintf(
+	url := fmt.Sprintf(
 		leverAPI,
 		company.Board,
 	)
@@ -47,10 +47,10 @@ func (p *LeverProvider) Scrape(company config.Company) ([]models.Job, error) {
 	for _, posting := range response {
 
 		jobs = append(jobs, models.Job{
-			Company: company.Name,
-			Title: posting.Text,
+			Company:  company.Name,
+			Title:    posting.Text,
 			Location: posting.Categories.Location,
-			URL: posting.HostedURL,
+			URL:      posting.HostedURL,
 		})
 	}
 
